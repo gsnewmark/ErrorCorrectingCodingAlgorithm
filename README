@@ -1,2 +1,2 @@
 Implementation of a few error-correcting codes (for binary initial strings) needed for a course at university.
-Now includes Reed-Muller algorithm (RM(N, 1) version only) and Hamming algotithm.
+Now includes Reed-Muller algorithm (RM(N, 1) version only) and Hamming algorithm.
