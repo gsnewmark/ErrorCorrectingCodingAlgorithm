@@ -6,6 +6,8 @@ Bunch of functions that implements Reed-Muller (RM(N,1)) coding algorithm.
 from math import log
 from numpy import matrix
 
+VERBOSE = False 
+
 def encode_message(message):
     """Encodes given message using Reed–Muller code."""
     # Creating matrix (row) from message
@@ -16,6 +18,8 @@ def encode_message(message):
     # Obtaining and returning coded string
     encoded_row = message_row * coding_matrix
     code = [str(el % 2) for el in encoded_row.tolist()[0]]
+    if VERBOSE:
+        print "Multiplying message and generating matrix..."
     return "".join(code) 
 
 def _generate_coding_matrix(n):
@@ -33,7 +37,10 @@ def _generate_coding_matrix(n):
             F = F % (2 ** j)
         result.append(line)
     # creating matrix (transposing it to obtain rows from columns list)
-    return matrix(result).T
+    result_matrix = matrix(result).T
+    if VERBOSE:
+        print "Generating matrix:\n" + str(result_matrix)
+    return result_matrix
 
 def decode_message(code):
     """Decodes code encoded using Reed–Muller code."""
@@ -51,6 +58,12 @@ def _generate_pairs(n):
                 tmp_result.append(l + j * (2 ** (i + 1)) + 2 ** i)
         # generate pairs 
         result.append(zip(tmp_result[::2], tmp_result[1::2]))
+    if VERBOSE:
+        message_length = len(result) + 1
+        for i in range(0, len(result)):
+            print 'm' + str(message_length - i) + ':'
+            print ''.join(['c' + str(e[0]) + ' + c' + str(e[1]) + '\n' \
+                    for e in result[i]])
     return result
 
 def _decode(code, checksums):
@@ -91,6 +104,9 @@ def _find_most_possible_value(values_list):
 
 def _find_first_letter(code, partial_message):
     """Finds first letter of a message."""
+    if VERBOSE:
+        print "\nFinding m1:\nMock message : " + '0' + ''.join(\
+                str(e) for e in partial_message)
     # partially decoded message with 0 as first value
     tmp_message_row = matrix([0] + partial_message)
     # matrix (row) for code
@@ -102,13 +118,20 @@ def _find_first_letter(code, partial_message):
     first_element_row = code_row + checking_row
     # all elements must be in a field F2
     first_element_list = [(el % 2) for el in first_element_row.tolist()[0]]
+    if VERBOSE:
+        print "Multiplying mock message and matrix...\nAdding the result" \
+                + " to encoded word...\nPossible first element's values: " \
+                + ', '.join(str(e) for e in first_element_list) + '\n'
     return _find_most_possible_value(first_element_list) 
 
 
 if __name__ == '__main__':
     from sys import argv
 
-    if len(argv) == 3:
+    if len(argv) >= 4:
+        if argv[3] == '-v':
+            VERBOSE = True
+    if len(argv) >= 3:
         mode = argv[1].lower()
         string = argv[2]
     else:
@@ -122,7 +145,8 @@ if __name__ == '__main__':
         print """Reed-Muller encoder/decoder (for binary strings).
 
 Usage instructions:
-    python rm_coding.py <key> <parameter>
+    python rm_coding.py <key> <parameter> [-v]
+        -v optional parameter that makes program print details of processing
         <key> could be -d, -e, -h:
             -d  decodes string coded using Reed-Muller code
                 parameter is an encoded string
